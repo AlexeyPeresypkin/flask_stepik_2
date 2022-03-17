@@ -1,0 +1,10 @@
+<form action="/save/" method="POST">
+{{ form.csrf_token }}
+    <h2>Форма</h2>
+
+    {{ form.name }}
+    {{ form.phone }}
+
+    <input type="submit">
+
+</form>
