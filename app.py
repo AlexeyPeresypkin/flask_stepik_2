@@ -1,10 +1,27 @@
-from flask import Flask, render_template, request
+import json
+
+from flask import Flask, render_template, request, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField
-from wtforms.validators import InputRequired, Email
+
+from filters import translate_day
 
 app = Flask(__name__)
 app.secret_key = 'my-super-secret-phrase-I-dont-tell-this-to-nobody'
+DAYS = {
+    'mon': [],
+    'tue': [],
+    'wed': [],
+    'thu': [],
+    'fri': [],
+    'sat': [],
+    'sun': []
+}
+
+
+@app.template_filter()
+def convert_day(value):
+    return translate_day(value)
 
 
 @app.route('/')
@@ -22,10 +39,22 @@ def goals_render(goal):
     return f'Here will be goal {goal}'
 
 
-@app.route('/profiles/<id_teacher>/')
+@app.route('/profiles/<int:id_teacher>/')
 def teacher_render(id_teacher):
-    return render_template('profile.html')
-    return f'Here will be teacher {id_teacher}'
+    with open('data/teachers.json') as f:
+        try:
+            teacher = json.load(f)[id_teacher]
+        except IndexError:
+            return abort(404)
+    for day, times in DAYS.items():
+        for time, vacant in teacher['free'][day].items():
+            if vacant:
+                times.append(time)
+    return render_template(
+        'profile.html',
+        teacher=teacher,
+        days=DAYS
+    )
 
 
 @app.route('/request/')
