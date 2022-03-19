@@ -1,22 +1,21 @@
 import json
 
-from flask import Flask, render_template, request, abort
+from flask import Flask, render_template, abort, request
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SubmitField
+from wtforms import StringField
+from wtforms.validators import InputRequired
 
 from filters import translate_day
 
 app = Flask(__name__)
 app.secret_key = 'my-super-secret-phrase-I-dont-tell-this-to-nobody'
-DAYS = {
-    'mon': [],
-    'tue': [],
-    'wed': [],
-    'thu': [],
-    'fri': [],
-    'sat': [],
-    'sun': []
-}
+DAYS = {'mon': [], 'tue': [], 'wed': [], 'thu': [], 'fri': [], 'sat': [],
+        'sun': []}
+
+
+class OrderForm(FlaskForm):
+    name = StringField('Ваше имя', [InputRequired()])
+    phone = StringField('Ваш телефон', [InputRequired()])
 
 
 @app.template_filter()
@@ -25,83 +24,90 @@ def convert_day(value):
 
 
 @app.route('/')
-def main():
+def main_view():
     return 'Main page'
 
 
 @app.route('/all')
-def all_render():
+def all_teachers_view():
     return 'All teachers'
 
 
 @app.route('/goals/<goal>/')
-def goals_render(goal):
+def goals_view(goal):
     return f'Here will be goal {goal}'
 
 
 @app.route('/profiles/<int:id_teacher>/')
-def teacher_render(id_teacher):
+def teacher_view(id_teacher):
     with open('data/teachers.json') as f:
         try:
             teacher = json.load(f)[id_teacher]
         except IndexError:
             return abort(404)
-    for day, times in DAYS.items():
+    days = {'mon': [], 'tue': [], 'wed': [], 'thu': [], 'fri': [], 'sat': [],
+            'sun': []}
+    for day, times in days.items():
         for time, vacant in teacher['free'][day].items():
             if vacant:
                 times.append(time)
     return render_template(
         'profile.html',
         teacher=teacher,
-        days=DAYS
+        days=days
     )
 
 
 @app.route('/request/')
-def request_render():
+def request_view():
     return 'Here will be request'
 
 
 @app.route('/request_done/')
-def request_done_render():
+def request_done_view():
     return 'Request done'
 
 
-@app.route('/booking/<id_teacher>/<day>/<time>/')
-def booking_render(id_teacher, day, time):
-    return f'Page for form with {id_teacher}, {day}, {time}'
-
-
-@app.route('/booking_done/')
-def booking_done_render(id_teacher, day, time):
-    return f'Page for booking done with'
-
-
-class OrderForm(FlaskForm):
-    name = StringField()
-    phone = StringField()
-
-
-class MyForm(FlaskForm):
-    name = StringField('Имя')
-    email = StringField('E-mail')
-    promo = StringField('Промо-код')
-    age = IntegerField('Возраст')
-    submit = SubmitField()
-
-
-@app.route('/form/')
-def render_form():
+@app.route('/booking/<int:id_teacher>/<day>/<time>/')
+def booking_view(id_teacher, day, time):
     form = OrderForm()
-    return render_template("form.html", form=form)
+    with open('data/teachers.json') as f:
+        teacher = json.load(f)[id_teacher]
+    return render_template(
+        'booking.html',
+        teacher=teacher,
+        day=day,
+        time=time,
+        form=form
+    )
 
 
-@app.route('/save/', methods=["GET", "POST"])
-def render_save():
-    if request.method == 'POST':
-        return "Форма отправлена"
-    else:
-        return "Просто зашли посмотреть"
+@app.route('/booking_done/', methods=['POST'])
+def booking_done_view():
+    print(request.form)
+    form = OrderForm()
+    time = request.form.get('clientTime')
+    day = request.form.get('clientWeekday')
+    teacher_id = request.form.get('clientTeacher')
+    if form.validate_on_submit():
+        with open('data/booking.json') as f:
+            data = json.load(f)
+        data.append({
+            'name': form.name.data,
+            'phone': form.phone.data,
+            'time': time,
+            'day': day,
+            'teacher_id': teacher_id,
+        })
+        with open('data/booking.json', 'w') as f:
+            json.dump(data, f, indent=4)
+    return render_template(
+        'booking_done.html',
+        day=day,
+        time=time,
+        name=form.name.data,
+        phone=form.phone.data
+    )
 
 
 if __name__ == '__main__':
