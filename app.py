@@ -1,11 +1,13 @@
 import json
+import random
 
 from flask import Flask, render_template, abort, request
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import InputRequired
 
-from filters import translate_day
+from filters import translate_day, translate_travel
+from utils import selected_choose
 
 app = Flask(__name__)
 app.secret_key = 'my-super-secret-phrase-I-dont-tell-this-to-nobody'
@@ -23,19 +25,40 @@ def convert_day(value):
     return translate_day(value)
 
 
+@app.template_filter()
+def convert_travel(value):
+    return translate_travel(value)
+
+
 @app.route('/')
 def main_view():
-    return 'Main page'
+    num_to_select = 6
+    with open('data/teachers.json') as f:
+        teachers = random.sample(json.load(f), num_to_select)
+    teachers_sort = sorted(teachers, key=lambda x: x['rating'], reverse=True)
+    return render_template('index.html', teachers=teachers_sort)
 
 
-@app.route('/all')
+@app.route('/all', methods=['GET', 'POST'])
 def all_teachers_view():
-    return 'All teachers'
+    with open('data/teachers.json') as f:
+        teachers = json.load(f)
+    if request.method == 'POST':
+        selected = request.form.get('selected')
+        teachers_sort = selected_choose(teachers, selected)
+        return render_template('all.html', teachers=teachers_sort,
+                               selected=selected)
+    random.shuffle(teachers)
+    return render_template('all.html', teachers=teachers, seleted='0')
 
 
 @app.route('/goals/<goal>/')
 def goals_view(goal):
-    return f'Here will be goal {goal}'
+    with open('data/teachers.json') as f:
+        teachers = [teacher for teacher in json.load(f) if
+                    goal in teacher['goals']]
+    teachers_sort = sorted(teachers, key=lambda x: x['rating'], reverse=True)
+    return render_template('goal.html', teachers=teachers_sort, goal=goal)
 
 
 @app.route('/profiles/<int:id_teacher>/')
@@ -108,6 +131,12 @@ def booking_done_view():
         name=form.name.data,
         phone=form.phone.data
     )
+
+
+@app.route('/sort/', methods=['POST'])
+def sort_view():
+    print(request.form)
+    return 'It"s sort'
 
 
 if __name__ == '__main__':

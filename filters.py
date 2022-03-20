@@ -11,3 +11,11 @@ def translate_day(value):
     return days[value]
 
 
+def translate_travel(value):
+    goals = {
+        'travel': 'путешествий',
+        'relocate': 'переезда',
+        'study': 'школы',
+        'work': 'работы',
+    }
+    return goals[value]
