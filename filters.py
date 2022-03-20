@@ -17,5 +17,17 @@ def translate_travel(value):
         'relocate': 'переезда',
         'study': 'школы',
         'work': 'работы',
+        'IT': 'программирования',
     }
     return goals[value]
+
+
+def take_picture(value):
+    picture = {
+        'travel': '⛱',
+        'relocate': '🚜',
+        'study': '🏫',
+        'work': '🏢',
+        'IT': '🖥'
+    }
+    return picture[value]

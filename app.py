@@ -6,13 +6,11 @@ from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import InputRequired
 
-from filters import translate_day, translate_travel
+from filters import translate_day, translate_travel, take_picture
 from utils import selected_choose
 
 app = Flask(__name__)
 app.secret_key = 'my-super-secret-phrase-I-dont-tell-this-to-nobody'
-DAYS = {'mon': [], 'tue': [], 'wed': [], 'thu': [], 'fri': [], 'sat': [],
-        'sun': []}
 
 
 class OrderForm(FlaskForm):
@@ -26,8 +24,13 @@ def convert_day(value):
 
 
 @app.template_filter()
-def convert_travel(value):
+def convert_goal(value):
     return translate_travel(value)
+
+
+@app.template_filter()
+def travel_picture(value):
+    return take_picture(value)
 
 
 @app.route('/')
@@ -83,12 +86,36 @@ def teacher_view(id_teacher):
 
 @app.route('/request/')
 def request_view():
-    return 'Here will be request'
+    form = OrderForm()
+    with open('data/goals.json') as f:
+        goals = json.load(f)
+    return render_template('request.html', form=form, goals=goals)
 
 
-@app.route('/request_done/')
+@app.route('/request_done/', methods=['POST'])
 def request_done_view():
-    return 'Request done'
+    print(request.form)
+    form = OrderForm()
+    time = request.form.get('time')
+    goal = request.form.get('goal')
+    if form.validate_on_submit():
+        with open('data/requests.json') as f:
+            data = json.load(f)
+        data.append({
+            'name': form.name.data,
+            'phone': form.phone.data,
+            'time': time,
+            'goal': goal,
+        })
+        with open('data/requests.json', 'w') as f:
+            json.dump(data, f, indent=4)
+    return render_template(
+        'request_done.html',
+        goal=goal,
+        time=time,
+        name=form.name.data,
+        phone=form.phone.data
+    )
 
 
 @app.route('/booking/<int:id_teacher>/<day>/<time>/')
@@ -107,7 +134,6 @@ def booking_view(id_teacher, day, time):
 
 @app.route('/booking_done/', methods=['POST'])
 def booking_done_view():
-    print(request.form)
     form = OrderForm()
     time = request.form.get('clientTime')
     day = request.form.get('clientWeekday')
@@ -131,12 +157,6 @@ def booking_done_view():
         name=form.name.data,
         phone=form.phone.data
     )
-
-
-@app.route('/sort/', methods=['POST'])
-def sort_view():
-    print(request.form)
-    return 'It"s sort'
 
 
 if __name__ == '__main__':

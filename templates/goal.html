@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1 class="h1 text-center w-50 mx-auto mt-1 py-5 mb-4"><strong>🚜<br/>Преподаватели
-        <br> для {{ goal|convert_travel }}</strong></h1>
+    <h1 class="h1 text-center w-50 mx-auto mt-1 py-5 mb-4">
+        <strong>{{ goal|travel_picture }}<br/>Преподаватели
+            <br> для {{ goal|convert_goal }} </strong></h1>
     <div class="row">
         <div class="col-12 col-lg-10 offset-lg-1 m-auto">
             {% for teacher in teachers %}
@@ -17,7 +18,7 @@
                                     Рейтинг: {{ teacher.rating }} Ставка:
                                     {{ teacher.price }} /
                                     час</p>
-                                <h2 class="h4">{{ teacher.name}}</h2>
+                                <h2 class="h4">{{ teacher.name }}</h2>
                                 <p>{{ teacher.about|truncate(300) }}</p>
                                 <a href="{{ url_for('teacher_view', id_teacher=teacher.id) }}"
                                    class="btn btn-outline-primary btn-sm mr-3 mb-2">Показать
