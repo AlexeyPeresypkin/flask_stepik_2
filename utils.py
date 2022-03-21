@@ -1,3 +1,4 @@
+import json
 import random
 
 
@@ -10,3 +11,9 @@ def selected_choose(teachers, selected):
     elif selected == '2':
         return sorted(teachers, key=lambda x: x['price'])
     return sorted(teachers, key=lambda x: x['rating'], reverse=True)
+
+
+def check_goal(goal):
+    with open('data/goals.json') as f:
+        data = json.load(f)
+        return goal in data

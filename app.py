@@ -7,7 +7,7 @@ from wtforms import StringField
 from wtforms.validators import InputRequired
 
 from filters import translate_day, translate_travel, take_picture
-from utils import selected_choose
+from utils import selected_choose, check_goal
 
 app = Flask(__name__)
 app.secret_key = 'my-super-secret-phrase-I-dont-tell-this-to-nobody'
@@ -57,6 +57,8 @@ def all_teachers_view():
 
 @app.route('/goals/<goal>/')
 def goals_view(goal):
+    if not check_goal(goal):
+        return abort(404)
     with open('data/teachers.json') as f:
         teachers = [teacher for teacher in json.load(f) if
                     goal in teacher['goals']]
