@@ -1,21 +1,21 @@
 import json
 import random
 
+from dotenv import load_dotenv
 from flask import Flask, render_template, abort, request
-from flask_wtf import FlaskForm
-from wtforms import StringField
-from wtforms.validators import InputRequired
+from flask_migrate import Migrate
 
 from filters import translate_day, translate_travel, take_picture
+from forms import OrderForm
+from models import db
 from utils import selected_choose, check_goal
 
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = 'my-super-secret-phrase-I-dont-tell-this-to-nobody'
-
-
-class OrderForm(FlaskForm):
-    name = StringField('Ваше имя', [InputRequired()])
-    phone = StringField('Ваш телефон', [InputRequired()])
+app.config.from_object('config.DevelopmentConfig')
+db.init_app(app)
+migrate = Migrate(app, db)
 
 
 @app.template_filter()
