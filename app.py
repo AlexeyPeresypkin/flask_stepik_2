@@ -7,13 +7,14 @@ from flask_migrate import Migrate
 
 from filters import translate_day, translate_travel, take_picture
 from forms import OrderForm
-from models import db
-from utils import selected_choose, check_goal
+from models import db, Teacher, Goal
+from utils import selected_choose, days_foo
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config.from_object('config.DevelopmentConfig')
+print(app.config.from_object('config.DevelopmentConfig'))
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -35,54 +36,41 @@ def travel_picture(value):
 
 @app.route('/')
 def main_view():
-    num_to_select = 6
-    with open('data/teachers.json') as f:
-        teachers = random.sample(json.load(f), num_to_select)
-    teachers_sort = sorted(teachers, key=lambda x: x['rating'], reverse=True)
-    return render_template('index.html', teachers=teachers_sort)
+    teachers = Teacher.query.order_by(Teacher.rating.desc()).limit(6)
+    return render_template('index.html', teachers=teachers)
 
 
 @app.route('/all', methods=['GET', 'POST'])
 def all_teachers_view():
-    with open('data/teachers.json') as f:
-        teachers = json.load(f)
     if request.method == 'POST':
         selected = request.form.get('selected')
-        teachers_sort = selected_choose(teachers, selected)
+        teachers_sort = selected_choose(selected)
         return render_template('all.html', teachers=teachers_sort,
                                selected=selected)
+    teachers = Teacher.query.all()
     random.shuffle(teachers)
     return render_template('all.html', teachers=teachers, seleted='0')
 
 
 @app.route('/goals/<goal>/')
 def goals_view(goal):
-    if not check_goal(goal):
+    goal = Goal.query.filter_by(title=goal).first()
+    if not goal:
         return abort(404)
-    with open('data/teachers.json') as f:
-        teachers = [teacher for teacher in json.load(f) if
-                    goal in teacher['goals']]
-    teachers_sort = sorted(teachers, key=lambda x: x['rating'], reverse=True)
-    return render_template('goal.html', teachers=teachers_sort, goal=goal)
+    teachers = Teacher.query.filter(Goal.id == goal.id). \
+        order_by(Teacher.rating.desc()).all()
+    return render_template('goal.html', teachers=teachers, goal=goal.title)
 
 
 @app.route('/profiles/<int:id_teacher>/')
 def teacher_view(id_teacher):
-    with open('data/teachers.json') as f:
-        try:
-            teacher = json.load(f)[id_teacher]
-        except IndexError:
-            return abort(404)
-    days = {'mon': [], 'tue': [], 'wed': [], 'thu': [], 'fri': [], 'sat': [],
-            'sun': []}
-    for day, times in days.items():
-        for time, vacant in teacher['free'][day].items():
-            if vacant:
-                times.append(time)
+    teacher = Teacher.query.get(id_teacher)
+    days = teacher.free
+    days_with_free_time = days_foo(days)
     return render_template(
         'profile.html',
         teacher=teacher,
-        days=days
+        days=days_with_free_time
     )
 
 
@@ -162,4 +150,4 @@ def booking_done_view():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run()

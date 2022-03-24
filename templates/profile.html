@@ -12,7 +12,7 @@
                         <h1 class="h2">{{ teacher.name }}</h1>
                         <p><span class="badge badge-secondary mr-2">
                             {% for goal in teacher.goals %}
-                                {{ goal }} <br>
+                                {{ goal.translate_title }} <br>
                             {% endfor %}
                             </span>Рейтинг:
                             {{ teacher.rating }} Ставка: {{ teacher.price }} /

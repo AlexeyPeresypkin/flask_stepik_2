@@ -12,7 +12,7 @@
             "study"
         ],
         "free": {
-            "mon": {
+        "mon": {
                 "8:00": false,
                 "10:00": true,
                 "12:00": true,
