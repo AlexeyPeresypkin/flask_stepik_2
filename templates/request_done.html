@@ -11,10 +11,12 @@
                 </div>
                 <hr/>
                 <div class="card-body mx-5">
-                    <p><b>Цель занятий:</b> Для {{ goal|convert_goal }}</p>
-                    <p><b>Времени есть:</b> {{ time }} часа в неделю</p>
-                    <p><b>Имя:</b> {{ name }}</p>
-                    <p><b>Телефон:</b> {{ phone }}</p>
+                    <p><b>Цель занятий:</b>
+                        Для {{ appform.goal.translate_title }}</p>
+                    <p><b>Времени есть:</b> {{ appform.time }} часа в неделю
+                    </p>
+                    <p><b>Имя:</b> {{ appform.name }}</p>
+                    <p><b>Телефон:</b> {{ appform.phone }}</p>
                 </div>
             </div>
         </div>

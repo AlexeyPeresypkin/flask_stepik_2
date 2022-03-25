@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
     <div class="col-12 col-sm-10 col-lg-6 offset-lg-3 offset-sm-1">
-        <form action="{{ url_for('request_done_view') }}" class="card mb-5"
+        <form action="{{ url_for('request_view') }}" class="card mb-5"
               method="post">
             {{ form.csrf_token }}
             <div class="card-body text-center pt-5">
@@ -17,12 +17,12 @@
                         {% for goal in goals %}
                             <div class="form-check ">
                                 <input type="radio" class="form-check-input"
-                                       name="goal" value="{{ goal }}"
-                                       id="{{ goal }}"
+                                       name="goal" value="{{ goal.id }}"
+                                       id="{{ goal.id }}"
                                        checked>
                                 <label class="form-check-label"
-                                       for="{{ goal }}">
-                                    Для {{ goal|convert_goal }}
+                                       for="{{ goal.title }}">
+                                    Для {{ goal.translate_title }}
                                 </label>
                             </div>
                         {% endfor %}
