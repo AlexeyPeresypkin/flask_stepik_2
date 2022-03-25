@@ -8,7 +8,8 @@
 
 Python      
 Flask       
-PostrgeSQL
+SQLAlchemy
+PostrgeSQL      
 
 ### Запуск проекта
 
